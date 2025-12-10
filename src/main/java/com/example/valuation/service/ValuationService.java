@@ -2,16 +2,22 @@ package com.example.valuation.service;
 
 import com.example.valuation.dto.CanonicalTradeDTO;
 import com.example.valuation.dto.NavRecordDTO;
-import com.example.valuation.entity.Valuation;
-import com.example.valuation.dao.ValuationDao;
+import com.example.valuation.entity.ValuationEntity;
+import com.example.valuation.entity.ValuationOutboxEntity;
+
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import com.example.valuation.dao.ValuationDao;
+import com.example.valuation.dao.ValuationOutboxDao;
+
+
 
 @Service
 public class ValuationService {
@@ -20,63 +26,52 @@ public class ValuationService {
     private NavService navService;
 
     @Autowired
-    private ValuationDao valuationDao;
+    private ValuationDao valuationRepository;
 
-    public Valuation processValuation(CanonicalTradeDTO trade) {
+    @Autowired
+    private ValuationOutboxDao outboxRepository;
 
-        // 1️⃣ Fetch NAV
+    @Transactional(rollbackFor = Exception.class)
+    public ValuationOutboxEntity valuation(CanonicalTradeDTO trade) throws Exception {
+        // 1) All business logic (NAV, BUY/SELL calculations)
         NavRecordDTO nav = navService.getNavByFundId(trade.getFundNumber());
         LocalDate navDate = LocalDate.parse(nav.getDate());
         LocalDate tradeDate = trade.getTradeDateTime().toLocalDate();
 
-        // 2️⃣ Determine CalculatedBy
         String calculatedBy;
         if (tradeDate.equals(navDate)) {
             calculatedBy = "CURRENT_NAV";
         } else if (tradeDate.minusDays(1).equals(navDate)) {
             calculatedBy = "PREVIOUS_NAV";
         } else {
-            throw new RuntimeException(
-                "Invalid NAV date for trade. NAV date: " + navDate + 
-                " | Trade date: " + tradeDate);
+            throw new RuntimeException("Invalid NAV date");
         }
 
         BigDecimal navValue = BigDecimal.valueOf(nav.getNav());
         BigDecimal finalShareQty;
         BigDecimal finalDollarAmt;
 
-        // 3️⃣ BUY / SELL valuation logic
         if ("BUY".equalsIgnoreCase(trade.getTransactionType())) {
-
             if (trade.getDollarAmount() == null) {
-                throw new RuntimeException("BUY requires dollarAmount to be provided.");
+                throw new RuntimeException("BUY requires dollarAmount");
             }
-
             finalDollarAmt = trade.getDollarAmount();
-
-            // shares = amount / NAV
             finalShareQty = finalDollarAmt.divide(navValue, 6, RoundingMode.HALF_UP);
-
         } else if ("SELL".equalsIgnoreCase(trade.getTransactionType())) {
-
             if (trade.getShareQuantity() == null) {
-                throw new RuntimeException("SELL requires shareQuantity to be provided.");
+                throw new RuntimeException("SELL requires shareQuantity");
             }
-
             finalShareQty = trade.getShareQuantity();
-
-            // amount = shares × NAV
             finalDollarAmt = finalShareQty.multiply(navValue)
                                           .setScale(6, RoundingMode.HALF_UP);
-
         } else {
-            throw new RuntimeException("Invalid transactionType: " + trade.getTransactionType());
+            throw new RuntimeException("Invalid transactionType");
         }
 
         BigDecimal valuationAmount = finalDollarAmt;
 
-        // 4️⃣ Save final valuation object
-        Valuation val = new Valuation();
+        // 2) Build and save ValuationEntity (JPA)
+        ValuationEntity val = new ValuationEntity();
         val.setCreatedAt(LocalDateTime.now());
         val.setOriginatorType(trade.getOriginatorType());
         val.setFirmNumber(trade.getFirmNumber());
@@ -98,6 +93,34 @@ public class ValuationService {
         val.setValuationDate(navDate);
         val.setCaluclatedBy(calculatedBy);
 
-        return valuationDao.save(val);
+        ValuationEntity savedVal = valuationRepository.save(val);
+
+        // 3) Build and save Outbox (status = NEW) in same transaction
+        ValuationOutboxEntity out = new ValuationOutboxEntity();
+        out.setCreatedAt(LocalDateTime.now());
+        out.setOriginatorType(savedVal.getOriginatorType());
+        out.setFirmNumber(savedVal.getFirmNumber());
+        out.setFundNumber(savedVal.getFundNumber());
+        out.setTransactionType(savedVal.getTransactionType());
+        out.setTransactionId(savedVal.getTransactionId());
+        out.setRawOrderId(savedVal.getRawOrderId());
+        out.setFileId(savedVal.getFileId());
+        out.setOrderSource(savedVal.getOrderSource());
+        out.setTradeDateTime(savedVal.getTradeDateTime());
+        out.setDollarAmount(savedVal.getDollarAmount());
+        out.setClientAccountNo(savedVal.getClientAccountNo());
+        out.setClientName(savedVal.getClientName());
+        out.setSsn(savedVal.getSsn());
+        out.setDob(savedVal.getDob());
+        out.setShareQuantity(savedVal.getShareQuantity());
+        out.setRequestId(savedVal.getRequestId());
+        out.setValuationAmount(savedVal.getValuationAmount());
+        out.setValuationDate(savedVal.getValuationDate());
+        out.setCaluclatedBy(savedVal.getCaluclatedBy());
+        out.setStatus(null);
+
+        ValuationOutboxEntity savedOutbox = outboxRepository.save(out);
+
+        return savedOutbox;
     }
 }

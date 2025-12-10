@@ -10,10 +10,10 @@ import java.util.Map;
 public class NavService {
 
     @Autowired
-    private RedisTemplate<String, String> redisTemplate;  // String serializer
+    private RedisTemplate<String, String> redisTemplate; 
 
     public NavRecordDTO getNavByFundId(Integer fundId) {
-        String key = fundId.toString();  // Just "200" - no "nav:" prefix
+        String key = fundId.toString();  
         System.out.println("Fetching NAV for fundId: " + fundId + " with key: " + key);
 
         Map<Object, Object> values = redisTemplate.opsForHash().entries(key);

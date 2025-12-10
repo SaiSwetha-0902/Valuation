@@ -11,7 +11,6 @@ import java.util.UUID;
 public class CanonicalTradeDTO {
 
     private UUID id;
-    private String status;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss") 
     private LocalDateTime createdAt;
     
