@@ -28,7 +28,13 @@ public class StatusTrackingService {
     public void trackStatus(CanonicalTradeDTO trade, Exception e) 
     {
         Map<String, String> payload = new HashMap<>();
-        payload.put("fileid", trade.getFileId().toString());
+        
+        if(trade.getFileId()!=null) {
+            payload.put("fileid", trade.getFileId().toString());
+        }else {
+        	payload.put("fileid", null);
+        }
+
         payload.put("distributorId", trade.getFirmNumber().toString());
         payload.put("orderId", trade.getRawOrderId().toString());
         payload.put("sourceservice", "valuation-service");
@@ -77,7 +83,7 @@ public class StatusTrackingService {
             );
 
             if(recordId != null) {
-               Optional<ValuationOutboxEntity> outboxOpt = outboxRepository.findByFirmNumberAndRawOrderIdAndTransactionIdAndFileId(trade.getFirmNumber(),trade.getRawOrderId(),trade.getTransactionId(),trade.getFileId());
+               Optional<ValuationOutboxEntity> outboxOpt = outboxRepository.findByOutboxId(trade.getId());
                 if(outboxOpt.isPresent()) {
                     ValuationOutboxEntity outbox = outboxOpt.get();
                     outbox.setStatus("PENDING");

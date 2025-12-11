@@ -16,4 +16,6 @@ public interface ValuationOutboxDao extends JpaRepository<ValuationOutboxEntity,
         UUID fileId              // matches DTO.fileId
     );
     */
+	
+	Optional<ValuationOutboxEntity> findByOutboxId(UUID id);
 }

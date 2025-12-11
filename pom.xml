@@ -90,7 +90,7 @@
         <dependency>
 		    <groupId>io.github.sushmithashiva04-ops</groupId>
 		    <artifactId>central-event-publisher</artifactId>
-		    <version>1.0.5</version>
+		    <version>1.0.6</version>
 		</dependency>
 
 	</dependencies>
