@@ -112,6 +112,11 @@ public class ValuationOutboxEntity {
     @NotBlank
     private String requestId;
 
+// @NotNull(message = "Payload can\'t be null!")
+//     @Column(name = "payload", columnDefinition = "jsonb")
+//     @JdbcTypeCode(SqlTypes.JSON)
+//     private String payload;  // JSON string trade order payload
+
     @Column(name = "valuation_amount")
       @NotNull
 

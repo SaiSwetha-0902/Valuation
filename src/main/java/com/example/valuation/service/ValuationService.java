@@ -33,7 +33,7 @@ public class ValuationService {
 
     @Transactional(rollbackFor = Exception.class)
     public ValuationOutboxEntity valuation(CanonicalTradeDTO trade) throws Exception {
-        // 1) All business logic (NAV, BUY/SELL calculations)
+        
         NavRecordDTO nav = navService.getNavByFundId(trade.getFundNumber());
         LocalDate navDate = LocalDate.parse(nav.getDate());
         LocalDate tradeDate = trade.getTradeDateTime().toLocalDate();
@@ -70,7 +70,7 @@ public class ValuationService {
 
         BigDecimal valuationAmount = finalDollarAmt;
 
-        // 2) Build and save ValuationEntity (JPA)
+
         ValuationEntity val = new ValuationEntity();
         val.setCreatedAt(LocalDateTime.now());
         val.setOriginatorType(trade.getOriginatorType());
@@ -95,7 +95,7 @@ public class ValuationService {
 
         ValuationEntity savedVal = valuationRepository.save(val);
 
-        // 3) Build and save Outbox (status = NEW) in same transaction
+
         ValuationOutboxEntity out = new ValuationOutboxEntity();
         out.setCreatedAt(LocalDateTime.now());
         out.setOriginatorType(savedVal.getOriginatorType());
@@ -117,10 +117,12 @@ public class ValuationService {
         out.setValuationAmount(savedVal.getValuationAmount());
         out.setValuationDate(savedVal.getValuationDate());
         out.setCaluclatedBy(savedVal.getCaluclatedBy());
-        out.setStatus(null);
+        out.setStatus("NEW");
 
         ValuationOutboxEntity savedOutbox = outboxRepository.save(out);
 
         return savedOutbox;
     }
+
+    
 }

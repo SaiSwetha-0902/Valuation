@@ -72,6 +72,11 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
+        <dependency>
+    <groupId>io.github.sushmithashiva04-ops</groupId>
+    <artifactId>central-event-publisher</artifactId>
+    <version>1.0.5</version>
+</dependency>
 
         <!-- Testing -->
         <dependency>
