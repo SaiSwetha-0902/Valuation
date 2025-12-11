@@ -35,7 +35,7 @@ public class ValuationOutboxService {
         // Store in outbox
         ValuationOutboxEntity outbox = new ValuationOutboxEntity();
 
-        outbox.setAggregateId(valuationTrade.getId());
+        outbox.setOutboxId(valuationTrade.getId());
         outbox.setPayload(payloadJson);
         outbox.setStatus("NEW");
         outbox.setCreatedAt(LocalDateTime.now());

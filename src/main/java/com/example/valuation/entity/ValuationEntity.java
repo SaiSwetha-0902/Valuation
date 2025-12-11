@@ -38,7 +38,7 @@ import java.util.UUID;
 @AllArgsConstructor
 public class ValuationEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    //@GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
 
     

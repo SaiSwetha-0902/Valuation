@@ -22,7 +22,7 @@ public class ValuationService {
     private NavService navService;
 
     @Autowired
-    private ValuationDao valuationRepository;
+    private ValuationDao valuationDao;
     
     @Autowired
     private ValuationOutboxService outboxService;
@@ -68,6 +68,7 @@ public class ValuationService {
 
         // 2) Build and save ValuationEntity (JPA)
         ValuationEntity val = new ValuationEntity();
+        val.setId(trade.getId());
         val.setCreatedAt(LocalDateTime.now());
         val.setOriginatorType(trade.getOriginatorType());
         val.setFirmNumber(trade.getFirmNumber());
@@ -89,7 +90,7 @@ public class ValuationService {
         val.setValuationDate(navDate);
         val.setCaluclatedBy(calculatedBy);
 
-        ValuationEntity savedTrade = valuationRepository.save(val);
+        ValuationEntity savedTrade = valuationDao.save(val);
 
         // 3) Save Outbox (status = NEW) in same transaction
         ValuationOutboxEntity savedOutbox = outboxService.createOutboxEntry(savedTrade);

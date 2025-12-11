@@ -4,6 +4,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
@@ -20,13 +21,15 @@ import org.hibernate.type.SqlTypes;
 @Table(name = "valuation_outbox")
 public class ValuationOutboxEntity {
     @Id
-    @UuidGenerator
+    //@UuidGenerator
     @Column(name = "id")
     private UUID outboxId; // ID of each row (record) in outbox
 
+    /*
     @NotNull(message = "Trade record ID can\'t be null!")
     @Column(name = "aggregate_id")
     private UUID aggregateId; // ID of each trade order
+    */
 
     @NotNull(message = "Payload can\'t be null!")
     @Column(name = "payload", columnDefinition = "jsonb")

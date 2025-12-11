@@ -1,7 +1,6 @@
 package com.example.valuation.dto;
 
 import lombok.Data;
-import com.fasterxml.jackson.annotation.JsonFormat;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -11,10 +10,7 @@ import java.util.UUID;
 public class CanonicalTradeDTO {
 
     private UUID id;
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss") 
     private LocalDateTime createdAt;
-    
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss") 
     private LocalDateTime tradeDateTime;
     private Integer originatorType;
     private Integer firmNumber;
