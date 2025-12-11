@@ -5,7 +5,6 @@ import com.example.valuation.dto.NavRecordDTO;
 import com.example.valuation.entity.ValuationEntity;
 import com.example.valuation.entity.ValuationOutboxEntity;
 
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,9 +14,6 @@ import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import com.example.valuation.dao.ValuationDao;
-import com.example.valuation.dao.ValuationOutboxDao;
-
-
 
 @Service
 public class ValuationService {
@@ -27,13 +23,13 @@ public class ValuationService {
 
     @Autowired
     private ValuationDao valuationRepository;
-
+    
     @Autowired
-    private ValuationOutboxDao outboxRepository;
+    private ValuationOutboxService outboxService;
 
     @Transactional(rollbackFor = Exception.class)
     public ValuationOutboxEntity valuation(CanonicalTradeDTO trade) throws Exception {
-        
+        // 1) All business logic (NAV, BUY/SELL calculations)
         NavRecordDTO nav = navService.getNavByFundId(trade.getFundNumber());
         LocalDate navDate = LocalDate.parse(nav.getDate());
         LocalDate tradeDate = trade.getTradeDateTime().toLocalDate();
@@ -70,7 +66,7 @@ public class ValuationService {
 
         BigDecimal valuationAmount = finalDollarAmt;
 
-
+        // 2) Build and save ValuationEntity (JPA)
         ValuationEntity val = new ValuationEntity();
         val.setCreatedAt(LocalDateTime.now());
         val.setOriginatorType(trade.getOriginatorType());
@@ -93,36 +89,11 @@ public class ValuationService {
         val.setValuationDate(navDate);
         val.setCaluclatedBy(calculatedBy);
 
-        ValuationEntity savedVal = valuationRepository.save(val);
+        ValuationEntity savedTrade = valuationRepository.save(val);
 
-
-        ValuationOutboxEntity out = new ValuationOutboxEntity();
-        out.setCreatedAt(LocalDateTime.now());
-        out.setOriginatorType(savedVal.getOriginatorType());
-        out.setFirmNumber(savedVal.getFirmNumber());
-        out.setFundNumber(savedVal.getFundNumber());
-        out.setTransactionType(savedVal.getTransactionType());
-        out.setTransactionId(savedVal.getTransactionId());
-        out.setRawOrderId(savedVal.getRawOrderId());
-        out.setFileId(savedVal.getFileId());
-        out.setOrderSource(savedVal.getOrderSource());
-        out.setTradeDateTime(savedVal.getTradeDateTime());
-        out.setDollarAmount(savedVal.getDollarAmount());
-        out.setClientAccountNo(savedVal.getClientAccountNo());
-        out.setClientName(savedVal.getClientName());
-        out.setSsn(savedVal.getSsn());
-        out.setDob(savedVal.getDob());
-        out.setShareQuantity(savedVal.getShareQuantity());
-        out.setRequestId(savedVal.getRequestId());
-        out.setValuationAmount(savedVal.getValuationAmount());
-        out.setValuationDate(savedVal.getValuationDate());
-        out.setCaluclatedBy(savedVal.getCaluclatedBy());
-        out.setStatus("NEW");
-
-        ValuationOutboxEntity savedOutbox = outboxRepository.save(out);
-
+        // 3) Save Outbox (status = NEW) in same transaction
+        ValuationOutboxEntity savedOutbox = outboxService.createOutboxEntry(savedTrade);
         return savedOutbox;
     }
-
-    
 }
+
