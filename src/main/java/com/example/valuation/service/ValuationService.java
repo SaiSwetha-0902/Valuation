@@ -27,9 +27,9 @@ public class ValuationService {
     @Autowired
     private ValuationOutboxService outboxService;
 
-    @Transactional(rollbackFor = Exception.class)
-    public ValuationOutboxEntity valuation(CanonicalTradeDTO trade) throws Exception {
-        // 1) All business logic (NAV, BUY/SELL calculations)
+    @Transactional
+    public ValuationEntity valuation(CanonicalTradeDTO trade) throws Exception 
+    {
         NavRecordDTO nav = navService.getNavByFundId(trade.getFundNumber());
         LocalDate navDate = LocalDate.parse(nav.getDate());
         LocalDate tradeDate = trade.getTradeDateTime().toLocalDate();
@@ -45,31 +45,39 @@ public class ValuationService {
 
         BigDecimal navValue = BigDecimal.valueOf(nav.getNav());
         BigDecimal finalShareQty;
-        BigDecimal finalDollarAmt;
+        BigDecimal valuationAmount;
 
         if ("BUY".equalsIgnoreCase(trade.getTransactionType())) {
             if (trade.getDollarAmount() == null) {
                 throw new RuntimeException("BUY requires dollarAmount");
             }
-            finalDollarAmt = trade.getDollarAmount();
-            finalShareQty = finalDollarAmt.divide(navValue, 6, RoundingMode.HALF_UP);
+            valuationAmount = trade.getDollarAmount();
+            finalShareQty = valuationAmount.divide(navValue, 6, RoundingMode.HALF_UP);
         } else if ("SELL".equalsIgnoreCase(trade.getTransactionType())) {
             if (trade.getShareQuantity() == null) {
                 throw new RuntimeException("SELL requires shareQuantity");
             }
             finalShareQty = trade.getShareQuantity();
-            finalDollarAmt = finalShareQty.multiply(navValue)
+            valuationAmount = finalShareQty.multiply(navValue)
                                           .setScale(6, RoundingMode.HALF_UP);
         } else {
             throw new RuntimeException("Invalid transactionType");
         }
 
-        BigDecimal valuationAmount = finalDollarAmt;
 
-        // 2) Build and save ValuationEntity (JPA)
+       long tradeCount = valuationDao.count() + 1;
+
+       
         ValuationEntity val = new ValuationEntity();
+         if (tradeCount % 10 == 0) {
+            val.setConfirmedStatus("REJECT");
+            val.setRejectReason("ACCOUNT_SUSPENDED");
+        } else {
+            val.setConfirmedStatus("CONFIRMED");
+            val.setRejectReason(null);
+        }
         val.setId(trade.getId());
-        val.setCreatedAt(LocalDateTime.now());
+        val.setCreatedAt(trade.getCreatedAt());
         val.setOriginatorType(trade.getOriginatorType());
         val.setFirmNumber(trade.getFirmNumber());
         val.setFundNumber(trade.getFundNumber());
@@ -79,22 +87,18 @@ public class ValuationService {
         val.setFileId(trade.getFileId());
         val.setOrderSource(trade.getOrderSource());
         val.setTradeDateTime(trade.getTradeDateTime());
-        val.setDollarAmount(finalDollarAmt);
         val.setClientAccountNo(trade.getClientAccountNo());
         val.setClientName(trade.getClientName());
         val.setSsn(trade.getSsn());
         val.setDob(trade.getDob());
         val.setShareQuantity(finalShareQty);
-        val.setRequestId(trade.getRequestId());
         val.setValuationAmount(valuationAmount);
-        val.setValuationDate(navDate);
+        val.setValuationDate(LocalDate.now());
         val.setCaluclatedBy(calculatedBy);
-
+        val.setNavValue(navValue);
         ValuationEntity savedTrade = valuationDao.save(val);
-
-        // 3) Save Outbox (status = NEW) in same transaction
         ValuationOutboxEntity savedOutbox = outboxService.createOutboxEntry(savedTrade);
-        return savedOutbox;
+        return savedTrade;
     }
 }
 

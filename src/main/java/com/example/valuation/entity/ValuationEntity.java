@@ -12,6 +12,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -40,6 +41,7 @@ public class ValuationEntity {
    
     @NotNull
     @Column(name = "created_at")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdAt;
     
     @NotNull
@@ -75,10 +77,8 @@ public class ValuationEntity {
     
     @Column(name = "trade_datetime")
     @NotNull
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime tradeDateTime;
-    
-    @Column(name = "dollar_amount")
-    private BigDecimal dollarAmount;
     
     @Column(name = "client_account_no")
     @NotNull
@@ -99,9 +99,6 @@ public class ValuationEntity {
     @Column(name = "share_quantity")
     private BigDecimal shareQuantity;
 
-    @Column(name = "request_id", length = 100)
-    @NotBlank
-    private String requestId;
 
     @Column(name = "valuation_amount")
     @NotNull
@@ -115,4 +112,13 @@ public class ValuationEntity {
     @NotBlank
     private String caluclatedBy;
 
+    @Column(name="confirmed_status", length=20)
+    @NotBlank
+    private String confirmedStatus;
+
+    @Column(name="reject_reason", length=20)
+    private String rejectReason;
+
+    @Column(name="nav_value")
+    private BigDecimal navValue;
 }
