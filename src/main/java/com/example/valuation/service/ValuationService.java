@@ -47,19 +47,32 @@ public class ValuationService {
         BigDecimal finalShareQty;
         BigDecimal valuationAmount;
 
-        if ("BUY".equalsIgnoreCase(trade.getTransactionType())) {
+        if ("B".equalsIgnoreCase(trade.getTransactionType())) {
             if (trade.getDollarAmount() == null) {
                 throw new RuntimeException("BUY requires dollarAmount");
             }
             valuationAmount = trade.getDollarAmount();
             finalShareQty = valuationAmount.divide(navValue, 6, RoundingMode.HALF_UP);
-        } else if ("SELL".equalsIgnoreCase(trade.getTransactionType())) {
+        } else if ("S".equalsIgnoreCase(trade.getTransactionType())) {
             if (trade.getShareQuantity() == null) {
                 throw new RuntimeException("SELL requires shareQuantity");
             }
             finalShareQty = trade.getShareQuantity();
             valuationAmount = finalShareQty.multiply(navValue)
                                           .setScale(6, RoundingMode.HALF_UP);
+        } else if ("X".equalsIgnoreCase(trade.getTransactionType())) {
+        	// Switch logic 
+        	if (trade.getShareQuantity() == null) {
+                throw new RuntimeException("SELL requires shareQuantity");
+            } else if (trade.getDollarAmount() == null) {
+                throw new RuntimeException("BUY requires dollarAmount");
+            }
+        	
+        	// Change with switch logic PLEASE
+        	finalShareQty = trade.getShareQuantity();
+            valuationAmount = finalShareQty.multiply(navValue)
+                                          .setScale(6, RoundingMode.HALF_UP);
+        	
         } else {
             throw new RuntimeException("Invalid transactionType");
         }
