@@ -8,14 +8,6 @@ import java.util.UUID;
 
 @Repository
 public interface ValuationOutboxDao extends JpaRepository<ValuationOutboxEntity, UUID> {
-	/*
-     Optional<ValuationOutboxEntity> findByFirmNumberAndRawOrderIdAndTransactionIdAndFileId(
-        Integer firmNumber,      // matches DTO.firmNumber
-        UUID rawOrderId,         // matches DTO.rawOrderId  
-        String transactionId,    // matches DTO.transactionId
-        UUID fileId              // matches DTO.fileId
-    );
-    */
 	
-	Optional<ValuationOutboxEntity> findByOutboxId(UUID id);
+	Optional<ValuationOutboxEntity> findByFileId(UUID id);
 }

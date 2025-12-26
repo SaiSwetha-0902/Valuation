@@ -28,7 +28,7 @@ public class ValuationService {
     private ValuationOutboxService outboxService;
 
     @Transactional
-    public ValuationEntity valuation(CanonicalTradeDTO trade) throws Exception 
+    public ValuationEntity valuation(CanonicalTradeDTO trade) 
     {
         NavRecordDTO nav = navService.getNavByFundId(trade.getFundNumber());
         LocalDate navDate = LocalDate.parse(nav.getDate());
@@ -97,7 +97,7 @@ public class ValuationService {
         val.setCaluclatedBy(calculatedBy);
         val.setNavValue(navValue);
         ValuationEntity savedTrade = valuationDao.save(val);
-        ValuationOutboxEntity savedOutbox = outboxService.createOutboxEntry(savedTrade);
+        //ValuationOutboxEntity savedOutbox = outboxService.createOutboxEntry(savedTrade);
         return savedTrade;
     }
 }

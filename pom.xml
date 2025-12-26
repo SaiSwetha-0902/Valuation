@@ -103,11 +103,16 @@
         <artifactId>regions</artifactId>
         <version>2.22.13</version>
     </dependency>
+    
+    <dependency>
+	    <groupId>com.fasterxml.jackson.datatype</groupId>
+	    <artifactId>jackson-datatype-jsr310</artifactId>
+	</dependency>
 
         <dependency>
 		    <groupId>io.github.sushmithashiva04-ops</groupId>
 		    <artifactId>central-event-publisher</artifactId>
-		    <version>1.0.6</version>
+		    <version>1.0.5</version>
 		</dependency>
 
 	</dependencies>

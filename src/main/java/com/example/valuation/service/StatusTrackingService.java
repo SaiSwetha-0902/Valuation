@@ -83,7 +83,7 @@ public class StatusTrackingService {
             );
 
             if(recordId != null) {
-               Optional<ValuationOutboxEntity> outboxOpt = outboxRepository.findByOutboxId(trade.getId());
+               Optional<ValuationOutboxEntity> outboxOpt = outboxRepository.findByFileId(trade.getId());
                 if(outboxOpt.isPresent()) {
                     ValuationOutboxEntity outbox = outboxOpt.get();
                     outbox.setStatus("PENDING");

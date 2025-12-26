@@ -2,6 +2,8 @@ package com.example.valuation.fileservice;
 
 import com.example.valuation.dao.ValuationDao;
 import com.example.valuation.entity.ValuationEntity;
+import com.example.valuation.service.ValuationOutboxService;
+
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -26,6 +28,9 @@ public class DailyFileScheduler {
 
     @Autowired
     private ValuationDao valuationDao;
+    
+    @Autowired
+    private ValuationOutboxService valuationOutboxService;
 
     @Autowired
     private S3Client s3Client;
@@ -54,7 +59,8 @@ public class DailyFileScheduler {
                                    ValuationEntity::getFundNumber));
 
             for (Map.Entry<Integer, List<ValuationEntity>> entry
-                    : recordsByFund.entrySet()) {
+                    : recordsByFund.entrySet()) 
+            {
 
                 Integer fundNumber = entry.getKey();
                 List<ValuationEntity> fundRecords = entry.getValue();
@@ -66,6 +72,9 @@ public class DailyFileScheduler {
                 if (s3FileExists(filename)) {
                     log.info("File already exists in S3: {} (skipping)", filename);
                     continue;
+                }else {
+                	// Store in outbox, needs to be transactional
+                	valuationOutboxService.createOutboxEntry(fundRecords.get(0), filename);
                 }
 
                 File file = new File(filename);
