@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import com.example.valuation.dao.ValuationOutboxDao;
 import com.example.valuation.entity.ValuationEntity;
 import com.example.valuation.entity.ValuationOutboxEntity;
+import com.example.valuation.entity.ValuationOutboxStatus;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -51,7 +52,7 @@ public class ValuationOutboxService {
 		}
 
         outbox.setPayload(payloadJson);
-        outbox.setStatus("NEW");
+        outbox.setStatus(ValuationOutboxStatus.NEW.name());
         outbox.setCreatedAt(LocalDateTime.now());
         outbox.setRetryCount(0);
         outbox.setLastAttemptAt(null);
