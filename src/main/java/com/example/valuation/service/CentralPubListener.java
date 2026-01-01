@@ -122,6 +122,7 @@ public void processBatch() {
 
             } catch (Exception singleEx) {
 
+            	/*
                 ValuationEntity failedValuation =
                         valuationService.buildRejectedOrPartial(trade);
 
@@ -132,6 +133,7 @@ public void processBatch() {
                 }
 
                 sendToDLQ(trade, singleEx.getMessage());
+                */
             }
         }
     }
