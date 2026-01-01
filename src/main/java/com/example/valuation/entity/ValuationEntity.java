@@ -121,4 +121,17 @@ public class ValuationEntity {
 
     @Column(name="nav_value")
     private BigDecimal navValue;
+
+    
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false, length = 20)
+    private ValuationStatus status;
+
+   
+}
+
+enum ValuationStatus {
+    NEW,
+    FAILED,
+    FILED
 }

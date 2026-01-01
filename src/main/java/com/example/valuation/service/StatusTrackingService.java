@@ -25,73 +25,52 @@ public class StatusTrackingService {
     private String streamKey;
 
 
-    public void trackStatus(CanonicalTradeDTO trade, Exception e) 
+    public void trackStatus(ValuationEntity val, Exception e) 
     {
         Map<String, String> payload = new HashMap<>();
         
-        if(trade.getFileId()!=null) {
-            payload.put("fileid", trade.getFileId().toString());
+        if(val.getFileId()!=null) {
+            payload.put("fileid", val.getFileId().toString());
         }else {
         	payload.put("fileid", null);
         }
 
-        payload.put("distributorId", trade.getFirmNumber().toString());
-        payload.put("orderId", trade.getRawOrderId().toString());
+        payload.put("distributorId", val.getFirmNumber().toString());
+        payload.put("orderId", val.getRawOrderId().toString());
         payload.put("sourceservice", "valuation-service");
-        if(e != null) 
-        {
-            payload.put("status", e.getMessage());
-            
-            String payloadJson = "{";
-            boolean first = true;
-            for (Map.Entry<String, String> entry : payload.entrySet()) {
-                if (!first) payloadJson += ",";
-                payloadJson += "\"" + entry.getKey() + "\":\"" + entry.getValue() + "\"";
-                first = false;
-            }
-            payloadJson += "}";
+      
+        String status;
 
-            Map<String, String> streamData = new HashMap<>();
-            streamData.put("payload", payloadJson);
+        if ("REJECT".equalsIgnoreCase(val.getConfirmedStatus())) {
+            status = "REJECTED_TRADE";
 
-            RecordId recordId = redisTemplate.opsForStream().add(
-                StreamRecords.newRecord()
-                    .in(streamKey)
-                    .ofMap(streamData)
-            );
+        } else if ("CONFIRMED".equalsIgnoreCase(val.getConfirmedStatus())
+                && e == null) {
+            status = "VALUATED";
 
-        }else
-        {  
-            payload.put("status", "VALUATED");
-            
-            String payloadJson = "{";
-            boolean first = true;
-            for (Map.Entry<String, String> entry : payload.entrySet()) {
-                if (!first) payloadJson += ",";
-                payloadJson += "\"" + entry.getKey() + "\":\"" + entry.getValue() + "\"";
-                first = false;
-            }
-            payloadJson += "}";
-
-            Map<String, String> streamData = new HashMap<>();
-            streamData.put("payload", payloadJson);
-
-            RecordId recordId = redisTemplate.opsForStream().add(
-                StreamRecords.newRecord()
-                    .in(streamKey)
-                    .ofMap(streamData)
-            );
-
-            if(recordId != null) {
-               Optional<ValuationOutboxEntity> outboxOpt = outboxRepository.findByFileId(trade.getId());
-                if(outboxOpt.isPresent()) {
-                    ValuationOutboxEntity outbox = outboxOpt.get();
-                    outbox.setStatus("PENDING");
-                    outboxRepository.save(outbox);
-                }
-            } 
-
+        } else {
+            status = "NOT_VALUATED";
         }
+
+        payload.put("status", status);
+            
+            String payloadJson = "{";
+            boolean first = true;
+            for (Map.Entry<String, String> entry : payload.entrySet()) {
+                if (!first) payloadJson += ",";
+                payloadJson += "\"" + entry.getKey() + "\":\"" + entry.getValue() + "\"";
+                first = false;
+            }
+            payloadJson += "}";
+
+            Map<String, String> streamData = new HashMap<>();
+            streamData.put("payload", payloadJson);
+
+            RecordId recordId = redisTemplate.opsForStream().add(
+                StreamRecords.newRecord()
+                    .in(streamKey)
+                    .ofMap(streamData)
+            ); 
     }
 
 
