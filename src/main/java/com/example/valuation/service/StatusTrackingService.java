@@ -1,13 +1,10 @@
 package com.example.valuation.service;
 
-import com.example.valuation.dao.ValuationOutboxDao;
-import com.example.valuation.entity.ValuationOutboxEntity;
-import com.example.valuation.dto.CanonicalTradeDTO;
+import com.example.valuation.entity.ValuationEntity;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.connection.stream.StreamRecords;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.data.redis.connection.stream.RecordId;
@@ -16,8 +13,6 @@ import org.springframework.beans.factory.annotation.Value;
 @Service
 public class StatusTrackingService {
 
-    @Autowired
-    private ValuationOutboxDao outboxRepository;
     @Autowired  
     private StringRedisTemplate redisTemplate; 
 

@@ -12,6 +12,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import com.example.valuation.dto.CanonicalTradeDTO;
+import com.example.valuation.entity.ValuationEntity;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.github.sushmithashiva04ops.centraleventpublisher.listener.DynamicOutboxListener;
@@ -28,6 +29,10 @@ public class CentralPubListener {
 
     @Autowired
     private ValuationService valuationService;
+    
+    @Autowired
+    private StatusTrackingService statusTrackingService;
+   
 
     @Autowired
     private ObjectMapper objectMapper;

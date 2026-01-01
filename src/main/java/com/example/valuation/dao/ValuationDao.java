@@ -11,5 +11,6 @@ import java.util.UUID;
 public interface ValuationDao extends JpaRepository<ValuationEntity, UUID> {
     long count();
     List<ValuationEntity> findByValuationDate(LocalDate valuationDate);
+	List<ValuationEntity> findByStatusAndValuationDate(String string, LocalDate today);
 
 }

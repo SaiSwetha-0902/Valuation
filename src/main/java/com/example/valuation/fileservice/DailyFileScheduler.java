@@ -42,7 +42,7 @@ public class DailyFileScheduler {
 
         // 1️⃣ Fetch only NEW records
         List<ValuationEntity> newRecords =
-                valuationDao.findByStatusAndValuationDate(ValuationStatus.NEW, today);
+                valuationDao.findByStatusAndValuationDate(ValuationStatus.NEW.name(), today);
 
         if (newRecords.isEmpty()) {
             log.info("No NEW valuation records found for {}", today);

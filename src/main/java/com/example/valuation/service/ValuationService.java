@@ -35,7 +35,7 @@ public class ValuationService {
     /* ================= BATCH ================= */
 
     @Transactional
-    public void valuationBatch(List<CanonicalTradeDTO> trades) {
+    public List<ValuationEntity> valuationBatch(List<CanonicalTradeDTO> trades) {
 
         List<ValuationEntity> entities = new ArrayList<>();
 
@@ -45,6 +45,8 @@ public class ValuationService {
 
         valuationDao.saveAll(entities);
         valuationDao.flush();
+        
+        return entities;
     }
 
     /* ================= CORE LOGIC ================= */
