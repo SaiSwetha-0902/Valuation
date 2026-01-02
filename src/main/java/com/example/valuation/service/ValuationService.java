@@ -3,8 +3,11 @@ package com.example.valuation.service;
 import com.example.valuation.dto.CanonicalTradeDTO;
 import com.example.valuation.dto.NavRecordDTO;
 import com.example.valuation.entity.ValuationEntity;
+import com.example.valuation.entity.ValuationStatus;
 import com.example.valuation.dao.ValuationDao;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,6 +20,8 @@ import java.util.List;
 
 @Service
 public class ValuationService {
+	
+	private static final Logger logger = LoggerFactory.getLogger(ValuationService.class);
 
     @Autowired
     private NavService navService;
@@ -38,6 +43,8 @@ public class ValuationService {
     public List<ValuationEntity> valuationBatch(List<CanonicalTradeDTO> trades) {
 
         List<ValuationEntity> entities = new ArrayList<>();
+        
+        logger.info("starting batch");
 
         for (CanonicalTradeDTO trade : trades) {
             entities.add(buildEntity(trade));
@@ -52,6 +59,8 @@ public class ValuationService {
     /* ================= CORE LOGIC ================= */
 
     private ValuationEntity buildEntity(CanonicalTradeDTO trade) {
+    	
+    	logger.info("strating tarde"+ trade.getRequestId());
 
         long tradeCount = valuationDao.count() + 1;
 
@@ -109,14 +118,26 @@ public class ValuationService {
         BigDecimal navValue = BigDecimal.valueOf(nav.getNav());
         BigDecimal shareQty;
         BigDecimal amount;
+        
+        logger.info("calulcating amount/shares"+ navValue);
+        String txnType = trade.getTransactionType();
 
-        if ("BUY".equalsIgnoreCase(trade.getTransactionType())) {
+        if ("B".equalsIgnoreCase(txnType)) {
+            txnType = "BUY";
+        } 
+        else if ("S".equalsIgnoreCase(txnType)) {
+        	txnType = "SELL";
+        	
+        }
+        
+
+        if ("BUY".equalsIgnoreCase(txnType)) {
             if (trade.getDollarAmount() == null) {
                 throw new RuntimeException("BUY requires dollarAmount");
             }
             amount = trade.getDollarAmount();
             shareQty = amount.divide(navValue, 6, RoundingMode.HALF_UP);
-        } else if ("SELL".equalsIgnoreCase(trade.getTransactionType())) {
+        } else if ("SELL".equalsIgnoreCase(txnType)) {
             if (trade.getShareQuantity() == null) {
                 throw new RuntimeException("SELL requires shareQuantity");
             }
@@ -130,6 +151,8 @@ public class ValuationService {
         val.setValuationAmount(amount);
         val.setCaluclatedBy(calculatedBy);
         val.setNavValue(navValue);
+        val.setStatus(ValuationStatus.NEW);
+        logger.info("val entity for" + trade.getRequestId()+"......"+ val);
 
         return val;
     }
